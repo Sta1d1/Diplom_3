@@ -24,16 +24,20 @@ public class ConstructorPage {
     private final By buttonBunsInSection = By.xpath("//span[text()='Булки']");
     private final By buttonSaucesInSection = By.xpath("//span[text()='Соусы']");
     private final By buttonToppingsInSection = By.xpath("//span[text()='Начинки']");
-    private final By sectionBuns = By.xpath("//h2[text()='Булки']");
-    private final By sectionSauces = By.xpath("//h2[text()='Соусы']");
-    private final By sectionToppings = By.xpath("//h2[text()='Начинки']");
+
+    // Таб-родитель с классом, содержащим "current" при активном разделе
+    private final By tabBuns = By.xpath("//span[text()='Булки']/parent::div");
+    private final By tabSauces = By.xpath("//span[text()='Соусы']/parent::div");
+    private final By tabToppings = By.xpath("//span[text()='Начинки']/parent::div");
+
+    private static final String ACTIVE_TAB_CLASS = "tab_tab_type_current";
 
     public ConstructorPage(WebDriver driver) {
         this.driver = driver;
     }
 
     @Step("Перехожу на страницу Конструктора бургеров")
-    public void getConstructorUrl(){
+    public void getConstructorUrl() {
         driver.get(baseConstructorUrl);
         checkConstructorUrl();
     }
@@ -44,48 +48,48 @@ public class ConstructorPage {
     }
 
     @Step("Нажимаю на кнопку <Войти в аккаунт> на странице конструктора бургеров")
-    public void clickOnTheLogInYourAccount(){
+    public void clickOnTheLogInYourAccount() {
         getConstructorUrl();
         driver.findElement(buttonLogInToYourAccout).click();
     }
 
     @Step("Нажимаю на переход к разделу Булки")
-    public void clickTransitionToBuns(){
+    public void clickTransitionToBuns() {
         clickWithJs(buttonBunsInSection);
         checkTransitionToBuns();
     }
 
     @Step("Проверяю переход к разделу Булки")
-    public void checkTransitionToBuns(){
-        boolean isDisplayed = new WebDriverWait(driver, Duration.ofSeconds(3))
-                .until(ExpectedConditions.visibilityOfElementLocated(sectionBuns)).isDisplayed();
-        assertTrue(isDisplayed, "Раздел Булки не отображается");
+    public void checkTransitionToBuns() {
+        assertTrue(isTabActive(tabBuns), "Таб 'Булки' не активен");
     }
 
     @Step("Нажимаю на переход к разделу Соусы")
-    public void clickTransitionToSauces(){
+    public void clickTransitionToSauces() {
         clickWithJs(buttonSaucesInSection);
         checkTransitionToSauces();
     }
 
     @Step("Проверяю переход к разделу Соусы")
-    public void checkTransitionToSauces(){
-        boolean isDisplayed = new WebDriverWait(driver, Duration.ofSeconds(3))
-                .until(ExpectedConditions.visibilityOfElementLocated(sectionSauces)).isDisplayed();
-        assertTrue(isDisplayed, "Раздел Соусы не отображается");
+    public void checkTransitionToSauces() {
+        assertTrue(isTabActive(tabSauces), "Таб 'Соусы' не активен");
     }
 
     @Step("Нажимаю на переход к разделу Начинки")
-    public void clickTransitionToToppings(){
+    public void clickTransitionToToppings() {
         clickWithJs(buttonToppingsInSection);
         checkTransitionToToppings();
     }
 
     @Step("Проверяю переход к разделу Начинки")
-    public void checkTransitionToToppings(){
-        boolean isDisplayed = new WebDriverWait(driver, Duration.ofSeconds(3))
-                .until(ExpectedConditions.visibilityOfElementLocated(sectionToppings)).isDisplayed();
-        assertTrue(isDisplayed, "Раздел Начинки не отображается");
+    public void checkTransitionToToppings() {
+        assertTrue(isTabActive(tabToppings), "Таб 'Начинки' не активен");
+    }
+
+    private boolean isTabActive(By tabLocator) {
+        WebElement tab = new WebDriverWait(driver, Duration.ofSeconds(3))
+                .until(ExpectedConditions.presenceOfElementLocated(tabLocator));
+        return tab.getAttribute("class").contains(ACTIVE_TAB_CLASS);
     }
 
     private void clickWithJs(By locator) {

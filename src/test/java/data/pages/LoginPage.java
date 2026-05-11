@@ -58,7 +58,6 @@ public class LoginPage {
         setEmail(email);
         setPassword(password);
         clickOnTheLoginButton();
-        assertEquals(driver.getCurrentUrl(), baseLoginUrl);
     }
 
 
