@@ -29,10 +29,10 @@ public class PersonalAccountPage {
     }
 
     @Step("Проверяю что нахожусь на странице <Личный кабинет>")
-    public void checkPersonalAccountUrl() {
+    public void checkPersonalAccountPage() {
         new WebDriverWait(driver, Duration.ofSeconds(3))
-                .until(ExpectedConditions.urlToBe(basePersonalAccountUrl));
-        assertEquals(basePersonalAccountUrl, driver.getCurrentUrl());
+                .until(ExpectedConditions.visibilityOfElementLocated(logoutButton))
+                .isDisplayed();
     }
 
     @Step("Нажимаю на кнопку выйти в профиле")

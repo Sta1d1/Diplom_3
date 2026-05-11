@@ -2,7 +2,9 @@ package tests;
 
 import data.factory.WebDriverFactory;
 import data.pages.LoginPage;
+import data.pages.RegistrationApi;
 import data.pages.RegistrationPage;
+import io.restassured.response.Response;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,10 +13,13 @@ import org.openqa.selenium.WebDriver;
 
 public class RegistrationTest {
     private WebDriver driver;
+    RegistrationApi registrationApi;
+    private String token;
 
     @BeforeEach
     public void setUp() {
         driver = WebDriverFactory.createDriver();
+        registrationApi = new RegistrationApi();
     }
 
     @Test
@@ -30,6 +35,9 @@ public class RegistrationTest {
         registrationPage.registration(name, email, password);
         loginPage.getLoginUrl();
         loginPage.login(email, password);
+
+        Response registerResponse = registrationApi.loginUser(email, password);
+        token = registerResponse.path("accessToken");
     }
 
     @Test
@@ -41,12 +49,20 @@ public class RegistrationTest {
         String email = "user" + System.currentTimeMillis() + "@yandex.ru";
 
         registrationPage.registrationWithIncorrectLenghtPassword(name, email);
+
     }
 
     @AfterEach
     public void tearDown() {
-        if (driver != null) {
-            driver.quit();
+        try {
+            if (token != null) {
+                String cleanToken = token.replace("Bearer ", "");
+                registrationApi.deleteUser(cleanToken);
+            }
+        } finally {
+            if (driver != null) {
+                driver.quit();
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ package tests;
 
 import data.factory.WebDriverFactory;
 import data.pages.*;
+import io.restassured.response.Response;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -10,22 +11,28 @@ import org.openqa.selenium.WebDriver;
 
 public class PersonalAccountTest {
     private WebDriver driver;
+    RegistrationApi registrationApi;
 
     String name;
     String email;
     String password;
+    String token;
 
     @BeforeEach
     public void setUp() {
         driver = WebDriverFactory.createDriver();
 
-        RegistrationPage registrationPage = new RegistrationPage(driver);
-        LoginPage loginPage = new LoginPage(driver);
+        registrationApi = new RegistrationApi();
         name = "User" + System.currentTimeMillis();
         email = "user" + System.currentTimeMillis() + "@yandex.ru";
         password = "pass123456";
-        registrationPage.registration(name, email, password);
-        loginPage.getLoginUrl();
+        Response registerResponse = registrationApi.registerUser(name, email, password);
+        token = registerResponse.path("accessToken");
+
+        // Логин через UI, чтобы браузер был авторизован
+        ConstructorPage constructorPage = new ConstructorPage(driver);
+        LoginPage loginPage = new LoginPage(driver);
+        constructorPage.clickOnTheLogInYourAccount();
         loginPage.login(email, password);
     }
 
@@ -36,7 +43,7 @@ public class PersonalAccountTest {
         PersonalAccountPage personalAccountPage = new PersonalAccountPage(driver);
 
         header.clickOnThePersonalAccount();
-        personalAccountPage.checkPersonalAccountUrl();
+        personalAccountPage.checkPersonalAccountPage();
     }
 
     @Test
@@ -47,7 +54,7 @@ public class PersonalAccountTest {
         ConstructorPage constructorPage = new ConstructorPage(driver);
 
         header.clickOnThePersonalAccount();
-        personalAccountPage.checkPersonalAccountUrl();
+        personalAccountPage.checkPersonalAccountPage();
         header.clickOnTheConstructorInHeader();
         constructorPage.checkConstructorUrl();
     }
@@ -60,7 +67,7 @@ public class PersonalAccountTest {
         ConstructorPage constructorPage = new ConstructorPage(driver);
 
         header.clickOnThePersonalAccount();
-        personalAccountPage.checkPersonalAccountUrl();
+        personalAccountPage.checkPersonalAccountPage();
         header.clickOnTheLogoInHeader();
         constructorPage.checkConstructorUrl();
     }
@@ -73,7 +80,7 @@ public class PersonalAccountTest {
         LoginPage loginPage = new LoginPage(driver);
 
         header.clickOnThePersonalAccount();
-        personalAccountPage.checkPersonalAccountUrl();
+        personalAccountPage.checkPersonalAccountPage();
         personalAccountPage.logout();
         loginPage.checkLoginUrl();
     }
@@ -81,8 +88,15 @@ public class PersonalAccountTest {
 
     @AfterEach
     public void tearDown() {
-        if (driver != null) {
-            driver.quit();
+        try {
+            if (token != null) {
+                String cleanToken = token.replace("Bearer ", "");
+                registrationApi.deleteUser(cleanToken);
+            }
+        } finally {
+            if (driver != null) {
+                driver.quit();
+            }
         }
     }
 }
